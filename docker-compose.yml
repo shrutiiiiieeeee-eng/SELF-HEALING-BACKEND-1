@@ -1,0 +1,64 @@
+version: '3.8'
+
+services:
+  service-a:
+    build: ./service-a
+    container_name: service-a
+    ports:
+      - "8081:8081"
+    networks:
+      - healing-net
+
+  service-b:
+    build: ./service-b
+    container_name: service-b
+    ports:
+      - "8082:8082"
+    networks:
+      - healing-net
+
+  service-c:
+    build: ./service-c
+    container_name: service-c
+    ports:
+      - "8083:8083"
+    networks:
+      - healing-net
+
+  monitor-service:
+    build: ./monitor-service
+    container_name: monitor-service
+    ports:
+      - "8085:8085"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    networks:
+      - healing-net
+    depends_on:
+      - service-a
+      - service-b
+      - service-c
+
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: prometheus
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml
+    networks:
+      - healing-net
+
+  grafana:
+    image: grafana/grafana:latest
+    container_name: grafana
+    ports:
+      - "3000:3000"
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+    networks:
+      - healing-net
+
+networks:
+  healing-net:
+    driver: bridge
