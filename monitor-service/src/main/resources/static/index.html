@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AutoHeal | Autonomous Self-Healing Backend & AI SRE Platform</title>
+    <meta name="description" content="AutoHeal: Real-time autonomous self-healing microservice architecture with Gemini AI predictive anomaly detection, explainable root-cause analysis, and chaos testing suite.">
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+    <!-- Chart.js CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <!-- Top Navigation Header -->
+    <header class="top-nav">
+        <div class="nav-brand">
+            <div class="brand-symbol">
+                <span class="pulse-ring"></span>
+                <span class="core-dot"></span>
+            </div>
+            <div class="brand-title">
+                <h1>AUTO<span>HEAL</span></h1>
+                <span class="brand-badge">Autonomous SRE & Self-Healing Engine</span>
+            </div>
+        </div>
+        <div class="nav-center">
+            <div class="global-indicator" id="global-health-pill">
+                <span class="status-indicator-dot online"></span>
+                <span id="global-status-text">All Microservices Healthy</span>
+            </div>
+            <div class="ai-badge">
+                <span class="ai-sparkle">✦</span>
+                <span id="ai-engine-status-text">Gemini 2.5 Flash + SRE Intelligence: Active</span>
+            </div>
+        </div>
+        <div class="nav-actions">
+            <div class="refresh-toggle">
+                <label class="switch">
+                    <input type="checkbox" id="auto-refresh-toggle" checked>
+                    <span class="slider round"></span>
+                </label>
+                <span class="refresh-label">Live Sync (2.5s)</span>
+            </div>
+            <button id="btn-manual-refresh" class="btn-icon" title="Refresh Now">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21.5 2v6h-6M2.5 22v-6h6M2 11.5a10 10 0 0 1 18.8-4.3M22 12.5a10 10 0 0 1-18.8 4.2"/></svg>
+            </button>
+        </div>
+    </header>
+
+    <!-- Main Dashboard Container -->
+    <main class="dashboard-content">
+        <!-- Metric Banner KPIs -->
+        <section class="kpi-grid">
+            <div class="kpi-card" id="kpi-services-card">
+                <div class="kpi-icon-wrap emerald">
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="8" rx="2"/><rect x="2" y="14" width="20" height="8" rx="2"/><line x1="6" y1="6" x2="6.01" y2="6"/><line x1="6" y1="18" x2="6.01" y2="18"/></svg>
+                </div>
+                <div class="kpi-info">
+                    <span class="kpi-label">Active Nodes</span>
+                    <div class="kpi-value" id="kpi-active-nodes">3 / 3 UP</div>
+                    <span class="kpi-subtext" id="kpi-nodes-sub">service-a, service-b, service-c</span>
+                </div>
+            </div>
+
+            <div class="kpi-card" id="kpi-circuits-card">
+                <div class="kpi-icon-wrap cyan">
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="m4.93 4.93 4.24 4.24M14.83 9.17l4.24-4.24M14.83 14.83l4.24 4.24M9.17 14.83l-4.24 4.24"/></svg>
+                </div>
+                <div class="kpi-info">
+                    <span class="kpi-label">Circuit Breakers</span>
+                    <div class="kpi-value" id="kpi-circuit-status">3 CLOSED</div>
+                    <span class="kpi-subtext text-emerald" id="kpi-circuit-sub">0 Diverting to Fallback</span>
+                </div>
+            </div>
+
+            <div class="kpi-card" id="kpi-heals-card">
+                <div class="kpi-icon-wrap violet">
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/></svg>
+                </div>
+                <div class="kpi-info">
+                    <span class="kpi-label">Autonomous Heals</span>
+                    <div class="kpi-value" id="kpi-total-heals">0</div>
+                    <span class="kpi-subtext text-violet" id="kpi-heals-sub">100% Recovery Rate</span>
+                </div>
+            </div>
+
+            <div class="kpi-card" id="kpi-ai-risk-card">
+                <div class="kpi-icon-wrap amber">
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2zm1 14h-2v-2h2zm0-4h-2V7h2z"/></svg>
+                </div>
+                <div class="kpi-info">
+                    <span class="kpi-label">AI Predictive Risk</span>
+                    <div class="kpi-value" id="kpi-ai-risk">LOW</div>
+                    <span class="kpi-subtext" id="kpi-ai-sub">No imminent failure detected</span>
+                </div>
+            </div>
+        </section>
+
+        <!-- Main 2-Column Working Layout -->
+        <div class="layout-columns">
+            <!-- Left Primary Column -->
+            <div class="col-primary">
+                <!-- Microservices Status Cards -->
+                <div class="panel">
+                    <div class="panel-header">
+                        <div class="panel-title-wrap">
+                            <h2>Target Microservices Topology</h2>
+                            <span class="panel-tag">Real-Time Docker & Actuator Probes</span>
+                        </div>
+                    </div>
+                    <div class="services-grid" id="services-container">
+                        <!-- Populated dynamically via JS -->
+                        <div class="loading-state">Connecting to monitoring supervisor...</div>
+                    </div>
+                </div>
+
+                <!-- Telemetry Time-Series Visualizer -->
+                <div class="panel">
+                    <div class="panel-header">
+                        <div class="panel-title-wrap">
+                            <h2>Telemetry & Metric Visualizer</h2>
+                            <span class="panel-tag">Live Dynamic Trajectory</span>
+                        </div>
+                        <div class="chart-tab-controls">
+                            <button class="chart-tab active" data-metric="cpu">CPU Usage (%)</button>
+                            <button class="chart-tab" data-metric="memory">Memory Used (%)</button>
+                            <button class="chart-tab" data-metric="latency">Response Latency (ms)</button>
+                        </div>
+                    </div>
+                    <div class="chart-wrapper">
+                        <canvas id="telemetryChart"></canvas>
+                    </div>
+                </div>
+
+                <!-- Multi-User Traffic Simulator -->
+                <div class="panel traffic-panel">
+                    <div class="panel-header">
+                        <div class="panel-title-wrap">
+                            <h2>Multi-User Traffic Simulator</h2>
+                            <span class="panel-tag">req.txt Objective 8</span>
+                        </div>
+                        <div class="traffic-status-badge" id="traffic-status-badge">Simulator Idle</div>
+                    </div>
+                    <div class="traffic-controls">
+                        <div class="traffic-slider-group">
+                            <div class="slider-header">
+                                <label for="virtual-users-slider">Simulated Concurrent Users:</label>
+                                <span class="slider-value" id="virtual-users-val">15 Users</span>
+                            </div>
+                            <input type="range" id="virtual-users-slider" min="1" max="60" value="15">
+                        </div>
+                        <div class="traffic-btn-group">
+                            <button id="btn-start-traffic" class="btn btn-primary">Start Traffic Load</button>
+                            <button id="btn-stop-traffic" class="btn btn-outline" disabled>Stop Simulation</button>
+                        </div>
+                    </div>
+                    <div class="traffic-stats-row">
+                        <div class="t-stat">
+                            <span class="t-label">Throughput</span>
+                            <span class="t-val" id="t-rps">0.0 req/s</span>
+                        </div>
+                        <div class="t-stat">
+                            <span class="t-label">Total Requests</span>
+                            <span class="t-val" id="t-total">0</span>
+                        </div>
+                        <div class="t-stat">
+                            <span class="t-label">Successful (Direct)</span>
+                            <span class="t-val text-emerald" id="t-success">0</span>
+                        </div>
+                        <div class="t-stat">
+                            <span class="t-label">Circuit Fallbacks</span>
+                            <span class="t-val text-amber" id="t-fallbacks">0</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Sidebar Column -->
+            <div class="col-secondary">
+                <!-- AI Predictive Advisory & Issue Tracing Center -->
+                <div class="panel ai-panel">
+                    <div class="panel-header">
+                        <div class="panel-title-wrap">
+                            <h2>AutoHeal AI Advisory Center</h2>
+                            <span class="panel-tag ai-tag">Predictive Anomaly & Issue Trace</span>
+                        </div>
+                        <button id="btn-trigger-ai-agent" class="btn btn-sm btn-ai" title="Launch Autonomous SRE Agent">
+                            <span class="ai-sparkle">✦</span> Invoke SRE Agent
+                        </button>
+                    </div>
+                    <div class="ai-predictions-feed" id="ai-predictions-feed">
+                        <!-- Populated dynamically via JS with intuitive, actionable diagnosis cards -->
+                        <div class="ai-empty-state">
+                            <div class="ai-scanner-line"></div>
+                            <p>AI Engine continuously analyzing metric slopes & variance...</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Chaos Engineering Control Deck -->
+                <div class="panel chaos-panel">
+                    <div class="panel-header">
+                        <div class="panel-title-wrap">
+                            <h2>Chaos Injection Deck</h2>
+                            <span class="panel-tag chaos-tag">Fault Simulation</span>
+                        </div>
+                    </div>
+                    <div class="chaos-body">
+                        <div class="chaos-target-select">
+                            <label for="chaos-target-select">Target Microservice:</label>
+                            <select id="chaos-target-select" class="form-select">
+                                <option value="service-b">service-b (Port 8082 - Simulator Enabled)</option>
+                                <option value="service-c">service-c (Port 8083 - Simulator Enabled)</option>
+                                <option value="service-a">service-a (Port 8081 - Production Core)</option>
+                            </select>
+                        </div>
+                        <div class="chaos-buttons-grid">
+                            <button class="btn-chaos" data-action="cpu" title="Spike CPU to 100% with infinite worker threads">
+                                <span class="chaos-icon">⚡</span>
+                                <div class="chaos-btn-text">
+                                    <strong>Spike CPU</strong>
+                                    <span>Triggers rate-limiting & scale</span>
+                                </div>
+                            </button>
+                            <button class="btn-chaos" data-action="memory" title="Allocate 20MB chunks in heap memory">
+                                <span class="chaos-icon">💧</span>
+                                <div class="chaos-btn-text">
+                                    <strong>Memory Leak</strong>
+                                    <span>Triggers dynamic RAM scaling</span>
+                                </div>
+                            </button>
+                            <button class="btn-chaos" data-action="crash" title="Call System.exit(1) to abruptly kill service">
+                                <span class="chaos-icon">🛑</span>
+                                <div class="chaos-btn-text">
+                                    <strong>Crash Service</strong>
+                                    <span>Trips circuit & auto-reboots</span>
+                                </div>
+                            </button>
+                            <button class="btn-chaos" data-action="slow-enable" title="Introduce 5000ms delay to /simulate/slow">
+                                <span class="chaos-icon">⏳</span>
+                                <div class="chaos-btn-text">
+                                    <strong>Inject Latency</strong>
+                                    <span>Trips circuit breaker</span>
+                                </div>
+                            </button>
+                        </div>
+                        <div class="chaos-quick-recovery">
+                            <button class="btn-quick-fix" data-action="slow-disable">Disable Latency</button>
+                            <button class="btn-quick-fix" data-action="rate-limit-disable">Reset Rate Limits</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Explainable AI Incident Audit Log -->
+                <div class="panel logs-panel">
+                    <div class="panel-header">
+                        <div class="panel-title-wrap">
+                            <h2>Explainable Recovery Audit Log</h2>
+                            <span class="panel-tag">H2 Database Audit Trail</span>
+                        </div>
+                    </div>
+                    <div class="logs-feed" id="logs-container">
+                        <div class="no-logs">No healing incidents recorded yet. All services operational.</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Modal for AI RCA & Issue Trace Details -->
+    <div id="rca-modal" class="modal-overlay hidden">
+        <div class="modal-card">
+            <div class="modal-header">
+                <div class="modal-title-wrap">
+                    <span class="ai-sparkle">✦</span>
+                    <h3 id="modal-title">Root Cause Analysis</h3>
+                </div>
+                <button id="btn-close-modal" class="btn-close">&times;</button>
+            </div>
+            <div class="modal-body" id="modal-content">
+                <!-- Inserted by JS -->
+            </div>
+            <div class="modal-footer">
+                <button id="btn-modal-done" class="btn btn-primary">Close Post-Mortem</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Notification Toast Element -->
+    <div id="toast-container" class="toast-container"></div>
+
+    <script src="app.js"></script>
+</body>
+</html>

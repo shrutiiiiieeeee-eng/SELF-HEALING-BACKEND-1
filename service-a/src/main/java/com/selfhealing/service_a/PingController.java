@@ -1,4 +1,4 @@
-package com.selfhealing.servicec;
+package com.selfhealing.service_a;
 
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -7,25 +7,44 @@ import java.util.ArrayList;
 import java.util.List;
 
 @RestController
-public class SimulatorController {
+public class PingController {
 
     private final List<byte[]> memoryHog = new ArrayList<>();
-
-    // ✅ Added
     private volatile boolean rateLimitEnabled = false;
+    private volatile boolean slowMode = false;
 
-    // ✅ Added
+    @GetMapping("/ping")
+    public String ping() {
+        return "pong";
+    }
+
+    @GetMapping("/health-check")
+    public String health() {
+        return "service-a is UP";
+    }
+
     @PostMapping("/admin/rate-limit/enable")
     public String enableRateLimit() {
         rateLimitEnabled = true;
-        return "Rate limiting enabled on " + System.getenv("SPRING_APPLICATION_NAME");
+        return "Rate limiting enabled on service-a";
     }
 
-    // ✅ Added
     @PostMapping("/admin/rate-limit/disable")
     public String disableRateLimit() {
         rateLimitEnabled = false;
-        return "Rate limiting disabled";
+        return "Rate limiting disabled on service-a";
+    }
+
+    @PostMapping("/admin/slow/enable")
+    public String enableSlowMode() {
+        slowMode = true;
+        return "Slow mode enabled on service-a";
+    }
+
+    @PostMapping("/admin/slow/disable")
+    public String disableSlowMode() {
+        slowMode = false;
+        return "Slow mode disabled on service-a";
     }
 
     @GetMapping("/simulate/cpu")
@@ -33,13 +52,13 @@ public class SimulatorController {
         for (int i = 0; i < 4; i++) {
             new Thread(() -> { while (true) Math.random(); }).start();
         }
-        return "CPU spike started on service-c";
+        return "CPU spike started on service-a";
     }
 
     @GetMapping("/simulate/memory")
     public String memoryLeak() {
         memoryHog.add(new byte[20 * 1024 * 1024]);
-        return "Memory leak triggered on service-c. Total chunks: " + memoryHog.size();
+        return "Memory leak triggered on service-a. Total chunks: " + memoryHog.size();
     }
 
     @GetMapping("/simulate/crash")
@@ -49,22 +68,19 @@ public class SimulatorController {
 
     @GetMapping("/simulate/slow")
     public String slowApi() throws InterruptedException {
-        Thread.sleep(5000);
-        return "Slow response from service-c";
+        if (slowMode) {
+            Thread.sleep(5000);
+            return "Slow response from service-a";
+        }
+        return "Normal response from service-a";
     }
 
-    // ✅ Added
     @GetMapping("/process")
     public String process() throws InterruptedException {
         if (rateLimitEnabled) {
-            Thread.sleep(100); // artificial throttle
+            Thread.sleep(100);
             return "processed (rate limited)";
         }
         return "processed normally";
-    }
-
-    @GetMapping("/health-check")
-    public String health() {
-        return "service-c is UP";
     }
 }

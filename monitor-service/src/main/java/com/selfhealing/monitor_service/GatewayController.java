@@ -1,5 +1,6 @@
 package com.selfhealing.monitor_service;
 
+import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -22,31 +23,68 @@ public class GatewayController {
         "service-c", "http://service-c:8083"
     );
 
-    // All requests go through here: /gateway/service-b/any-endpoint
-    @GetMapping("/{serviceName}/**")
+    // All requests route through here: /gateway/{serviceName}/**
+    @RequestMapping(value = "/{serviceName}/**", method = {RequestMethod.GET, RequestMethod.POST})
     public ResponseEntity<Object> route(
             @PathVariable String serviceName,
-            @RequestParam(required = false) String path) {
+            HttpServletRequest request) {
 
         // if circuit is open → return fallback immediately
         if (healingEngine.isCircuitOpen(serviceName)) {
             return ResponseEntity.ok(Map.of(
                 "status",   "FALLBACK",
                 "service",  serviceName,
-                "message",  serviceName + " is temporarily unavailable. Using cached response.",
+                "circuit",  "OPEN",
+                "message",  serviceName + " is temporarily unavailable. Circuit is OPEN; serving graceful fallback.",
                 "data",     getDefaultResponse(serviceName)
             ));
         }
 
-        // circuit closed → forward request normally
+        // Circuit closed → resolve downstream URL
+        String baseTarget = SERVICE_URLS.get(serviceName);
+        if (baseTarget == null) {
+            // Local dev fallback if running outside docker
+            baseTarget = switch (serviceName) {
+                case "service-a" -> "http://localhost:8081";
+                case "service-b" -> "http://localhost:8082";
+                case "service-c" -> "http://localhost:8083";
+                default -> null;
+            };
+        }
+
+        if (baseTarget == null) {
+            return ResponseEntity.badRequest().body(Map.of("error", "Unknown service: " + serviceName));
+        }
+
+        String fullUri = request.getRequestURI();
+        String prefix = "/gateway/" + serviceName;
+        String subPath = "";
+        if (fullUri.startsWith(prefix)) {
+            subPath = fullUri.substring(prefix.length());
+            if (subPath.startsWith("/")) {
+                subPath = subPath.substring(1);
+            }
+        }
+
+        String targetUrl = baseTarget + "/" + subPath;
+        if (request.getQueryString() != null && !request.getQueryString().isBlank()) {
+            targetUrl += "?" + request.getQueryString();
+        }
+
         try {
-            String url = SERVICE_URLS.get(serviceName) + "/" + path;
-            Object response = restTemplate.getForObject(url, Object.class);
-            return ResponseEntity.ok(response);
+            if ("POST".equalsIgnoreCase(request.getMethod())) {
+                Object response = restTemplate.postForObject(targetUrl, null, Object.class);
+                return ResponseEntity.ok(response != null ? response : Map.of("status", "SUCCESS"));
+            } else {
+                Object response = restTemplate.getForObject(targetUrl, Object.class);
+                return ResponseEntity.ok(response != null ? response : Map.of("status", "SUCCESS"));
+            }
         } catch (Exception e) {
             return ResponseEntity.status(503).body(Map.of(
                 "status",  "ERROR",
-                "message", "Service unavailable"
+                "service", serviceName,
+                "targetUrl", targetUrl,
+                "message", "Service unavailable: " + e.getMessage()
             ));
         }
     }
@@ -57,12 +95,11 @@ public class GatewayController {
     }
 
     private Object getDefaultResponse(String serviceName) {
-        // return sensible defaults per service
         return switch (serviceName) {
-            case "service-a" -> Map.of("result", "default-data-from-service-a");
-            case "service-b" -> Map.of("result", "default-data-from-service-b");
-            case "service-c" -> Map.of("result", "default-data-from-service-c");
-            default          -> Map.of("result", "service-unavailable");
+            case "service-a" -> Map.of("result", "cached-data-service-a", "timestamp", System.currentTimeMillis());
+            case "service-b" -> Map.of("result", "cached-data-service-b", "timestamp", System.currentTimeMillis());
+            case "service-c" -> Map.of("result", "cached-data-service-c", "timestamp", System.currentTimeMillis());
+            default          -> Map.of("result", "fallback-default", "timestamp", System.currentTimeMillis());
         };
     }
 }
